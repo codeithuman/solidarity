@@ -1,6 +1,6 @@
 {
   "name": "solidarity",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Make sure all React Native dependencies are uniform across machines",
   "bin": {
     "solidarity": "bin/solidarity"
@@ -10,10 +10,13 @@
     "start": "node bin/solidarity",
     "build": "tsc",
     "shipit": "tsc && np",
-    "test": "jest --ci",
+    "test": "jest && tslint -p .",
+    "test:ci": "jest --ci && tslint -p .",
+    "lint": "tslint -p .",
+    "newclear": "rm -rf node_modules && yarn && tsc",
     "watch": "jest --watch",
     "coverage": "jest --coverage",
-    "snapupdate": "ava --update-snapshots",
+    "snapupdate": "jest -u",
     "welcome": "yarn tsc && npm link",
     "serve:docs": "docsify serve docs"
   },
@@ -23,6 +26,7 @@
     "callsite": "^1.0.0",
     "gluegun": "^2.0.0-alpha.3",
     "minimist": "^1.2.0",
+    "pluralize": "^7.0.0",
     "ramda": "^0.24.1"
   },
   "devDependencies": {
@@ -35,10 +39,10 @@
     "execa": "^0.8.0",
     "jest": "^21.2.1",
     "np": "^2.16.0",
-    "nyc": "^11.2.1",
     "tempy": "^0.2.1",
     "ts-jest": "^21.1.3",
-    "tslint": "^5.7.0",
+    "tslint": "^5.8.0",
+    "tslint-config-standard": "^6.0.1",
     "typescript": "^2.5.3"
   },
   "jest": {

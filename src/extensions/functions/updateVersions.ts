@@ -1,4 +1,6 @@
 import { SolidarityRunContext } from '../../types'
+import * as pluralize from 'pluralize'
+
 module.exports = async (context: SolidarityRunContext): Promise<void> => {
   const { map, toPairs, isEmpty, flatten } = require('ramda')
   const { solidarity, print } = context
@@ -13,8 +15,8 @@ module.exports = async (context: SolidarityRunContext): Promise<void> => {
 
   // Map over requirements with option to mutate settings
   const checks = await map(
-    async requirement => updateRequirement(requirement, solidaritySettings, context),
-    toPairs(solidaritySettings)
+    async requirement => updateRequirement(requirement, solidaritySettings.requirements, context),
+    toPairs(solidaritySettings.requirements)
   )
 
   // run the array of promises you just created
@@ -25,7 +27,8 @@ module.exports = async (context: SolidarityRunContext): Promise<void> => {
         print.success('\n No Changes')
       } else {
         setSolidaritySettings(solidaritySettings, context)
-        print.success(`\n ${updates.length} Rule(s) updated`)
+        const ruleMessage = pluralize('Rule', updates.length, true)
+        print.success(`\n ${ruleMessage} updated`)
       }
     })
     .catch(err => {

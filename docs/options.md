@@ -1,10 +1,29 @@
 # Solidarity Options
 Understanding the `.solidarity` file helps you read and write new solidarity checks for any project.
 
-## Solidarity Rules
-The `.solidarity` file is a JSON object with a set of rules to enforce on each computer's environment.
+## Solidarity output
+You can use set the following option in `.solidarity` to configure output:
+```
+{
+  "config" : {
+    "output" : "<moderate/verbose/silent>"
+  }
+}
+```
+_Default is `moderate`_
 
-Each type of check is dictated by the `rule` property.  Depending on the `rule` is what other properties will be required
+- Moderate - Only outputs message if a specific check fails
+- Verbose  - Outputs all messages for successful and failed checks.
+- Silent   - No visible output, just have to see system return value (mostly for turning down CI noise).
+
+Optionally you can also pass `--verbose`, `--moderate`, or `--silent` in the CLI to override the configuration option change the output.
+
+## Solidarity Rules
+The `.solidarity` file is a JSON object with a set of requirements to enforce on each computer's environment.  All requirements should be specified inside the `requirements` key.
+
+Each type of requirement check is dictated by the `rule` property.  Depending on the `rule` is what other properties will be required
+
+See [this file](../.solidarity.example) for an example of what a solidarity rule-set might look like for any given project.
 
 ### CLI Rules
 

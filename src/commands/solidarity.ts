@@ -1,9 +1,10 @@
 import { GluegunCommand } from 'gluegun'
+import { SolidarityOutputMode } from '../types'
 
 namespace Solidarity {
   const { map, toPairs, isEmpty, flatten, reject, isNil } = require('ramda')
 
-  const checkForEscapeHatchFlags = async(context) => {
+  const checkForEscapeHatchFlags = async (context) => {
     const { print, parameters } = context
     const { options } = parameters
     if (options.help || options.h) {
@@ -17,31 +18,63 @@ namespace Solidarity {
     }
   }
 
+  const setOutputMode = (parameters, settings): SolidarityOutputMode => {
+    const { options } = parameters
+    // CLI flags override config
+    if (options.verbose || options.a) {
+      return SolidarityOutputMode.VERBOSE
+    } else if (options.silent || options.s) {
+      return SolidarityOutputMode.SILENT
+    } else if (options.moderate || options.m) {
+      return SolidarityOutputMode.MODERATE
+    }
+
+    // Set output mode, set to default on invalid value
+    let outputModeString = settings.config ? String(settings.config.output).toUpperCase() : null
+    return SolidarityOutputMode[outputModeString] || SolidarityOutputMode.MODERATE
+  }
+
   export const run = async (context) => {
     // drop out fast in these situations
-    checkForEscapeHatchFlags(context)
+    await checkForEscapeHatchFlags(context)
 
     const { print, solidarity } = context
     const { checkRequirement, getSolidaritySettings } = solidarity
 
-    // get settings
-    const solidaritySettings = getSolidaritySettings(context)
+    // get settings or error
+    let solidaritySettings
+    try {
+      solidaritySettings = getSolidaritySettings(context)
+    } catch (e) {
+      print.error(e)
+      print.info(
+        `Make sure you are in the correct folder or run ${print.colors.success(
+          'solidarity snapshot'
+        )} to take a snapshot of your environment and create a .solidarity file for this project.`
+      )
+      process.exit(3)
+    }
+
+    context.outputMode = setOutputMode(context.parameters, solidaritySettings)
 
     // build map of checks to perform
     const checks = await map(
       async requirement => checkRequirement(requirement, context),
-      toPairs(solidaritySettings)
+      toPairs(solidaritySettings.requirements)
     )
 
     // run the array of promises you just created
     await Promise.all(checks)
       .then(results => {
         const errors = reject(isNil, flatten(results))
+        const silentOutput = context.outputMode === SolidarityOutputMode.SILENT
+        // Add empty line between final result if printing rule results
+        if (!silentOutput) print.success('')
+
         if (isEmpty(errors)) {
-          print.success('\n Environment Checks Valid')
+          if (!silentOutput) print.success(print.checkmark + ' Solidarity checks valid')
         } else {
-          print.error('\nSolidarity Checks Failed:\n')
-          print.error(errors.join('\n'))
+          if (!silentOutput) print.error('Solidarity checks failed.')
           process.exit(1)
         }
       })
@@ -52,9 +85,8 @@ namespace Solidarity {
   }
 }
 
-
 // Export command
 module.exports = {
-  description: 'Check environment rules',
+  description: 'Check environment against solidarity rules',
   run: Solidarity.run
 } as GluegunCommand

@@ -27,6 +27,7 @@ export interface SolidarityRunContext extends GluegunRunContext {
   _pluginsList: Array<SolidarityPlugin & {templateDirectory: string}>
   addPlugin: (config: SolidarityPlugin) => void
   printSeparator: () => void
+  outputMode: SolidarityOutputMode
 }
 
 export type SnapshotType = (context: SolidarityRunContext) => Promise<void>
@@ -45,3 +46,14 @@ export interface SolidarityRule {
 }
 
 export type SolidarityRequirement = SolidarityRule[]
+
+export interface SolidaritySettings {
+  requirements: object
+  config: object
+}
+
+export enum SolidarityOutputMode {
+  MODERATE,
+  VERBOSE,
+  SILENT
+}
